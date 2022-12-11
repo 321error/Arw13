@@ -368,7 +368,7 @@ else
 HOSTCC	= gcc
 HOSTCXX	= g++
 endif
-HOSTCFLAGS   := -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 \
+HOSTCFLAGS   := -Wall -Wmissing-prototypes -O2 \
 		-fomit-frame-pointer -std=gnu89 $(HOST_LFS_CFLAGS)
 HOSTCXXFLAGS := -O2 $(HOST_LFS_CFLAGS)
 HOSTLDFLAGS  := $(HOST_LFS_LDFLAGS)
@@ -437,7 +437,7 @@ LINUXINCLUDE    := \
 		$(USERINCLUDE)
 
 KBUILD_AFLAGS   := -D__ASSEMBLY__
-KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
+KBUILD_CFLAGS   := -Wall -Wundef -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common -fshort-wchar \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security \
@@ -721,6 +721,12 @@ ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS   += -Os
 else
 KBUILD_CFLAGS   += -O2
+ifeq ($(cc-name),gcc)
+KBUILD_CFLAGS	+= -mcpu=cortex-a76.cortex-a55 -mtune=cortex-a76.cortex-a55
+endif
+ifeq ($(cc-name),clang)
+KBUILD_CFLAGS	+= -mcpu=cortex-a55 -mtune=cortex-a55
+endif
 endif
 
 # Tell gcc to never replace conditional load with a non-conditional one
@@ -775,8 +781,34 @@ KBUILD_CFLAGS += $(stackp-flag)
 ifeq ($(cc-name),clang)
 KBUILD_CFLAGS += $(call cc-disable-warning, format-invalid-specifier)
 KBUILD_CFLAGS += $(call cc-disable-warning, gnu)
+KBUILD_CFLAGS += $(call cc-disable-warning, unused-variable)
+KBUILD_CFLAGS += $(call cc-disable-warning, unused-but-set-variable)
+KBUILD_CFLAGS += $(call cc-disable-warning, unused-label)
+KBUILD_CFLAGS += $(call cc-disable-warning, frame-larger-than)
+KBUILD_CFLAGS += $(call cc-disable-warning, unused-function)
+KBUILD_CFLAGS += $(call cc-disable-warning, strlcpy-strlcat-size)
+KBUILD_CFLAGS += $(call cc-disable-warning, fortify-source)
+KBUILD_CFLAGS += $(call cc-disable-warning, strict-prototypes)
+KBUILD_CFLAGS += $(call cc-disable-warning, implicit-function-declaration)
+KBUILD_CFLAGS += $(call cc-disable-warning, array-parameter)
+KBUILD_CFLAGS += $(call cc-disable-warning, enum-conversion)
+KBUILD_CFLAGS += $(call cc-disable-warning, deprecated-declarations)
+KBUILD_CFLAGS += $(call cc-disable-warning, void-ptr-dereference)
 KBUILD_CFLAGS += $(call cc-disable-warning, duplicate-decl-specifier)
 KBUILD_CFLAGS += $(call cc-option, -Wno-undefined-optimized)
+KBUILD_CFLAGS += $(call cc-option, -Wno-unused-variable)
+KBUILD_CFLAGS += $(call cc-option, -Wno-unused-but-set-variable)
+KBUILD_CFLAGS += $(call cc-option, -Wno-unused-label)
+KBUILD_CFLAGS += $(call cc-option, -Wno-frame-larger-than)
+KBUILD_CFLAGS += $(call cc-option, -Wno-unused-function)
+KBUILD_CFLAGS += $(call cc-option, -Wno-strlcpy-strlcat-size)
+KBUILD_CFLAGS += $(call cc-option, -Wno-fortify-source)
+KBUILD_CFLAGS += $(call cc-option, -Wno-strict-prototypes)
+KBUILD_CFLAGS += $(call cc-option, -Wno-implicit-function-declaration)
+KBUILD_CFLAGS += $(call cc-option, -Wno-array-parameter)
+KBUILD_CFLAGS += $(call cc-option, -Wno-enum-conversion)
+KBUILD_CFLAGS += $(call cc-option, -Wno-deprecated-declarations)
+KBUILD_CFLAGS += $(call cc-option, -Wno-void-ptr-dereference)
 KBUILD_CFLAGS += $(call cc-option, -Wno-tautological-constant-out-of-range-compare)
 KBUILD_CFLAGS += $(call cc-option, -mllvm -disable-struct-const-merge)
 KBUILD_CFLAGS += $(call cc-option, -Wno-sometimes-uninitialized)
@@ -995,9 +1027,6 @@ KBUILD_CFLAGS   += $(call cc-option,-fconserve-stack)
 
 # disallow errors like 'EXPORT_GPL(foo);' with missing header
 KBUILD_CFLAGS   += $(call cc-option,-Werror=implicit-int)
-
-# require functions to have arguments in prototypes, not empty 'int foo()'
-KBUILD_CFLAGS   += $(call cc-option,-Werror=strict-prototypes)
 
 # Prohibit date/time macros, which would make the build non-deterministic
 KBUILD_CFLAGS   += $(call cc-option,-Werror=date-time)
