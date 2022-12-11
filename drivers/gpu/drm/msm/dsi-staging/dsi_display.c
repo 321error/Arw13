@@ -7875,6 +7875,10 @@ int dsi_display_post_enable(struct dsi_display *display)
 		dsi_display_clk_ctrl(display->dsi_clk_handle,
 			DSI_ALL_CLKS, DSI_CLK_OFF);
 
+#ifdef CONFIG_MACH_XIAOMI_SWEET
+	dsi_panel_gamma_mode_change(display->panel, display->panel->cur_mode);
+#endif
+
 	mutex_unlock(&display->display_lock);
 	return rc;
 }
